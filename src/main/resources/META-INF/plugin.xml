@@ -1,0 +1,82 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+    <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
+    <id>com.taobao.travel.claude-code-skill-tree-view</id>
+
+    <!-- Public plugin name should be written in Title Case.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
+    <name>Claude Code Skills Tree View</name>
+
+    <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
+    <vendor email="sanbai@example.com" url="https://github.com/yourusername">sanbai</vendor>
+
+    <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
+         Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
+    <description><![CDATA[
+    <h2>Claude Code Skills Tree View</h2>
+    <p>
+    一个 IntelliJ IDEA 插件，用于将 Claude Code 的 skills 目录中的点号命名文件夹以树形结构展示。
+    </p>
+
+    <h3>🎯 核心功能</h3>
+    <ul>
+    <li><b>树形结构展示</b> - 将 xxx.xxx.xxx 格式的文件夹显示为层级树形结构</li>
+    <li><b>指定目录转换</b> - 只在指定的目录（如 .claude/skills）内应用转换</li>
+    <li><b>可配置</b> - 支持自定义目标目录、分隔符等选项</li>
+    <li><b>实时刷新</b> - 支持手动刷新和配置后自动刷新</li>
+    <li><b>双重展示</b> - 提供工具窗口和项目视图装饰器两种展示方式</li>
+    </ul>
+
+    <h3>📖 使用示例</h3>
+    <p>
+    配置目标目录为 <code>.claude/skills</code> 后：
+    </p>
+    <ul>
+    <li>文件夹 <code>superpowers.test-driven-development</code> 显示为 <code>superpowers / test-driven-development</code></li>
+    <li>文件夹 <code>web-design.accessibility</code> 显示为 <code>web-design / accessibility</code></li>
+    </ul>
+
+    <p><em>让你的 Claude Code skills 组织得更好！</em></p>
+  ]]></description>
+
+    <!-- Product and plugin compatibility requirements.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
+    <depends>com.intellij.modules.platform</depends>
+
+    <!-- Extension points defined by the plugin.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- 注册工具窗口 -->
+        <toolWindow id="Skills Tree"
+                    factoryClass="com.taobao.travel.claudecodeskilltree.toolwindow.SkillTreeToolWindowFactory"
+                    anchor="left"
+                    icon="/META-INF/pluginIcon.svg"/>
+
+        <!-- 注册项目视图节点装饰器 -->
+        <projectViewNodeDecorator
+                implementation="com.taobao.travel.claudecodeskilltree.decorator.DotNotationTreeDecorator"/>
+
+        <!-- 注册应用服务（配置状态） -->
+        <projectService
+                serviceImplementation="com.taobao.travel.claudecodeskilltree.config.DotNotationTreeState"/>
+
+        <!-- 注册配置页面 -->
+        <applicationConfigurable
+                parentId="tools"
+                instance="com.taobao.travel.claudecodeskilltree.config.DotNotationTreeConfigurable"
+                id="com.taobao.travel.claudecodeskilltree.config.DotNotationTreeConfigurable"
+                displayName="Claude Code Skill Tree View"/>
+    </extensions>
+
+    <!-- Actions -->
+    <actions>
+        <!-- 在 Project 视图右键菜单中添加切换树形显示的选项 -->
+        <action id="ClaudeCodeSkillTreeView.ToggleTreeView"
+                class="com.taobao.travel.claudecodeskilltree.action.ToggleTreeViewAction"
+                text="启用树形显示"
+                description="切换项目视图中的树形显示模式">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="EditSource"/>
+        </action>
+    </actions>
+</idea-plugin>
