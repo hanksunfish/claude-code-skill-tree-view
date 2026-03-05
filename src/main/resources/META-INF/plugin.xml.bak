@@ -21,11 +21,11 @@
 
     <h3>🎯 核心功能</h3>
     <ul>
-    <li><b>树形结构展示</b> - 将 xxx.xxx.xxx 格式的文���夹显示为层级树形结构</li>
+    <li><b>树形结构展示</b> - 将 xxx.xxx.xxx 格式的文件夹显示为层级树形结构</li>
     <li><b>指定目录转换</b> - 只在指定的目录（如 .claude/skills）内应用转换</li>
     <li><b>可配置</b> - 支持自定义目标目录、分隔符等选项</li>
     <li><b>实时刷新</b> - 支持手动刷新和配置后自动刷新</li>
-    <li><b>智能合并</b> - 自动处理 a.b 和 a.b.c 等重叠情况，正确合并子节点</li>
+    <li><b>双重展示</b> - 提供工具窗口和项目视图装饰器两种展示方式</li>
     </ul>
 
     <h3>📖 使用示例</h3>
@@ -57,13 +57,13 @@
         <projectViewNodeDecorator
                 implementation="com.taobao.travel.claudecodeskilltree.decorator.DotNotationTreeDecorator"/>
 
-        <!-- 注册 TreeStructureProvider - 暂时禁用 -->
-        <!--
-        <treeStructureProvider
-                implementation="com.taobao.travel.claudecodeskilltree.tree.SkillsTreeStructureProvider"/>
-        -->
+        <!-- 注册自定义 ProjectView -->
+        <projectView
+                id="SkillsTreeView"
+                class="com.taobao.travel.claudecodeskilltree.view.SkillsProjectView"
+                displayName="Skills Tree View"/>
 
-        <!-- 注册项目服务（配置状态） -->
+        <!-- 注册应用服务���配置状态） -->
         <projectService
                 serviceImplementation="com.taobao.travel.claudecodeskilltree.config.DotNotationTreeState"/>
 
@@ -75,15 +75,14 @@
                 displayName="Claude Code Skill Tree View"/>
     </extensions>
 
-    <!-- Actions - 已禁用右键菜单选项 -->
-    <!--
+    <!-- Actions -->
     <actions>
+        <!-- 在 Project 视图右键菜单中添加切换树形显示的选项 -->
         <action id="ClaudeCodeSkillTreeView.ToggleTreeView"
                 class="com.taobao.travel.claudecodeskilltree.action.ToggleTreeViewAction"
                 text="启用树形显示"
                 description="切换项目视图中的树形显示模式">
-            <add-to-group group-id="ProjectViewPopupMenu"/>
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="EditSource"/>
         </action>
     </actions>
-    -->
 </idea-plugin>

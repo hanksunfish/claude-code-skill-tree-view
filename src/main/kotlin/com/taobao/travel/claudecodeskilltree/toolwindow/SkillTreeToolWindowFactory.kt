@@ -7,6 +7,7 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.treeStructure.Tree
 import com.taobao.travel.claudecodeskilltree.config.DotNotationTreeState
+import com.taobao.travel.claudecodeskilltree.tree.SkillTreeCellRenderer
 import com.taobao.travel.claudecodeskilltree.tree.SkillTreeModel
 import com.taobao.travel.claudecodeskilltree.tree.SkillTreeNode
 import java.awt.BorderLayout
@@ -15,9 +16,10 @@ import java.awt.event.MouseEvent
 import javax.swing.BoxLayout
 import javax.swing.JButton
 import javax.swing.JPanel
+import javax.swing.tree.DefaultTreeCellRenderer
 
 /**
- * Skills Tree 工具窗口工厂
+ * Skills Tree 工具窗口工���
  * 创建并初始化显示 skills 树形结构的工具窗口
  */
 class SkillTreeToolWindowFactory : ToolWindowFactory {
@@ -62,16 +64,27 @@ class SkillTreeToolWindowFactory : ToolWindowFactory {
         val treeModel = SkillTreeModel(project)
         val tree = Tree(treeModel)
 
+        // 将 Project 存储为树的客户端属性，供 Renderer 使用
+        tree.putClientProperty("project.key", project)
+
+        // 设置自定义渲染器 - 显示图标和样式
+        tree.cellRenderer = SkillTreeCellRenderer()
+
         // 设置树的选择模式
         tree.selectionModel.selectionMode = javax.swing.tree.TreeSelectionModel.SINGLE_TREE_SELECTION
+
+        // 设置树的外观
+        tree.rowHeight = 24  // 增加行高以更好显示图标
+        tree.showsRootHandles = true  // 显示展开/折叠手柄
+        tree.isRootVisible = false  // 隐藏根节点
 
         // 添加双击导航监听器
         tree.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
                 if (e.clickCount == 2) {
-                    val path = tree.getSelectionPath()
+                    val path = tree.selectionPath
                     if (path != null) {
-                        val node = path.getLastPathComponent() as? SkillTreeNode
+                        val node = path.lastPathComponent as? SkillTreeNode
                         node?.let {
                             navigateToFile(it, project)
                         }
@@ -100,6 +113,18 @@ class SkillTreeToolWindowFactory : ToolWindowFactory {
             refreshTree(tree, project)
         }
 
+        // 添加展开全部按钮
+        val expandButton = JButton("展开全部")
+        expandButton.addActionListener {
+            expandAll(tree)
+        }
+
+        // 添加折叠全部按钮
+        val collapseButton = JButton("折叠全部")
+        collapseButton.addActionListener {
+            collapseAll(tree)
+        }
+
         // 添加配置按钮
         val configButton = JButton("配置")
         configButton.addActionListener {
@@ -108,6 +133,8 @@ class SkillTreeToolWindowFactory : ToolWindowFactory {
         }
 
         panel.add(refreshButton)
+        panel.add(expandButton)
+        panel.add(collapseButton)
         panel.add(configButton)
 
         return panel
@@ -119,6 +146,40 @@ class SkillTreeToolWindowFactory : ToolWindowFactory {
     private fun refreshTree(tree: Tree, project: Project) {
         val newModel = SkillTreeModel(project)
         tree.model = newModel
+
+        // 展开第一层
+        val root = tree.model.root as? SkillTreeNode
+        if (root != null) {
+            for (i in 0 until root.childCount) {
+                val child = root.getChildAt(i) as? SkillTreeNode
+                if (child != null) {
+                    // 展开根节点下的第一层
+                    tree.expandRow(i)
+                }
+            }
+        }
+    }
+
+    /**
+     * 展开全部节点
+     */
+    private fun expandAll(tree: Tree) {
+        var row = 0
+        while (row < tree.rowCount) {
+            tree.expandRow(row)
+            row++
+        }
+    }
+
+    /**
+     * 折叠全部节点
+     */
+    private fun collapseAll(tree: Tree) {
+        var row = tree.rowCount - 1
+        while (row >= 0) {
+            tree.collapseRow(row)
+            row--
+        }
     }
 
     /**
@@ -140,6 +201,12 @@ class SkillTreeToolWindowFactory : ToolWindowFactory {
             // 在项目视图中定位并选择文件
             com.intellij.ide.projectView.ProjectView.getInstance(project)
                 .select(virtualFile, virtualFile, true)
+
+            // 如果是文件，打开它
+            if (!virtualFile.isDirectory) {
+                com.intellij.openapi.fileEditor.FileEditorManager.getInstance(project)
+                    .openFile(virtualFile, true, true)
+            }
         }
     }
 }

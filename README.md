@@ -4,11 +4,12 @@
 
 ## 功能特性
 
-- 🌳 **树形结构展示** - 将 `xxx.xxx.xxx` 格式的文件夹显示为层级树形结构
+- 🌳 **树形结构展示** - 在独立工具窗口中将 `xxx.xxx.xxx` 格式的文件夹显示为层级树形结构
 - 🎯 **指定目录转换** - 只在指定的目录（如 `.claude/skills`）内应用转换
 - ⚙️ **可配置** - 支持自定义目标目录、分隔符等选项
 - 🔄 **实时刷新** - 支持手动刷新和配置后自动刷新
 - 🎨 **虚拟节点显示** - 区分虚拟节点和实际文件节点
+- 📂 **智能合并** - 自动处理 `a.b` 和 `a.b.c` 等重叠情况，正确合并子节点
 
 ## 安装
 
@@ -42,17 +43,7 @@ cd claude-code-skill-tree-view
 
 ### 2. 查看树形结构
 
-有两种方式查看树形结构：
-
-#### 方式一：工具窗口
-
-1. 在 IDEA 左侧工具栏找到 **Skills Tree** 窗口
-2. 点击窗口即可看到树形结构的 skills 列表
-3. 双击节点可在项目视图中定位到对应文件夹
-
-#### 方式二：项目视图装饰器
-
-插件会自动装饰项目视图中的文件夹名称，在 skills 目录下的点号命名文件夹会显示为层级结构。
+在 IDEA 左侧工具栏找到 **Skills Tree** 窗口，点击窗口即可看到树形结构的 skills 列表。双击节点可在项目视图中定位到对应文件夹。
 
 ### 3. 配置选项
 
@@ -94,15 +85,15 @@ src/main/kotlin/com/taobao/travel/claudecodeskilltree/
 ├── parser/              # 解析器
 │   └── DotNotationParser.kt         # 点号解析器
 ├── decorator/           # 装饰器
-│   └── DotNotationTreeDecorator.kt  # 项目视图装饰器
+│   └── DotNotationTreeDecorator.kt  # 项目视图装饰器（蓝色图标标识）
 ├── tree/                # 树形结构
 │   ├── SkillTreeNode.kt            # 树节点
-│   └── SkillTreeModel.kt           # 树模型
+│   ├── SkillTreeModel.kt           # 树模型（含智能合并逻辑）
+│   └── SkillTreeCellRenderer.kt    # 树单元格渲染器
 ├── toolwindow/          # 工具窗口
 │   └── SkillTreeToolWindowFactory.kt  # 工具窗口工厂
 └── util/                # 工具类
-    ├── PluginUtils.kt               # 插件工具类
-    └── FileUtils.kt                 # 文件工具类
+    └── PluginUtils.kt               # 插件工具类
 ```
 
 ## 开发

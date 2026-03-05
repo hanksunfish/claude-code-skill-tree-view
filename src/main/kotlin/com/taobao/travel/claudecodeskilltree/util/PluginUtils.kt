@@ -53,10 +53,22 @@ object PluginUtils {
 
     /**
      * 刷新项目视图
+     * 强制重建树结构以应用 TreeStructureProvider 的更改
      */
     fun refreshProjectView(project: Project) {
-        val projectView = ProjectView.getInstance(project)
-        projectView.refresh()
+        com.intellij.openapi.application.ApplicationManager.getApplication().invokeLater {
+            val projectView = ProjectView.getInstance(project)
+            // 完全刷新项目视图，这会触发 TreeStructureProvider 重新计算
+            projectView.refresh()
+
+            // 同时刷新所有项目文件，确保视图同步
+            com.intellij.openapi.vfs.VfsUtil.markDirtyAndRefresh(
+                false, // async
+                true,  // recursive
+                true,  // reloadChildren
+                project.baseDir
+            )
+        }
     }
 
     /**
@@ -66,14 +78,12 @@ object PluginUtils {
         val settings = project.getService(DotNotationTreeState::class.java)
         val projectBasePath = project.basePath ?: return false
 
-        // 获取文件的父目录路径
-        val parentPath = file.parent?.path ?: return false
+        val filePath = file.path
 
         return settings.targetDirectories.any { targetDir ->
-            // 构建完整的目标目录路径
             val targetFullPath = "$projectBasePath/$targetDir"
-            // 只检查文件是否直接在目标目录下（父目录完全匹配）
-            parentPath == targetFullPath
+            // 文件是目标目录本身，或在目标目录下
+            filePath == targetFullPath || filePath.startsWith("$targetFullPath/")
         }
     }
 

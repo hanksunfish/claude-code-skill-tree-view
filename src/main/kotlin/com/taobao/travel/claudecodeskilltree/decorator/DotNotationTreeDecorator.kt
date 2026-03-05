@@ -13,7 +13,7 @@ import javax.swing.Icon
 
 /**
  * 点号树形结构装饰器
- * 将点号命名的文件夹以树形结构展示
+ * 配合 TreeStructureProvider 使用，为虚拟节点添加图标
  */
 class DotNotationTreeDecorator : ProjectViewNodeDecorator {
 
@@ -53,22 +53,15 @@ class DotNotationTreeDecorator : ProjectViewNodeDecorator {
 
         val fileName = virtualFile.name
 
-        // 如果启用了树形显示模式，且文件名包含分隔符，则修改显示名称
-        if (settings.treeViewEnabled && parser.needsParsing(fileName)) {
-            val parts = parser.parsePath(fileName)
-            if (parts.size > 1) {
-                // 简单实现：显示最后一部分
-                // TODO: 需要根据实际的目录结构来计算应该显示哪一层
-                data.presentableText = parts.last()
-            }
-        } else {
-            // 未启用树形显示时，保持原样
-            data.presentableText = fileName
-        }
-
-        // 为 skills 根目录设置蓝色图标
+        // 树形模式：不要修改显示名称，让 TreeStructureProvider 处理
+        // 只为 skills 根目录设置蓝色图标
         if (isSkillsRootDirectory(virtualFile, project)) {
             data.setIcon(blueFolderIcon)
+        }
+
+        // 扁平模式：保持完整的文件名显示
+        if (!settings.treeViewEnabled) {
+            data.presentableText = fileName
         }
     }
 

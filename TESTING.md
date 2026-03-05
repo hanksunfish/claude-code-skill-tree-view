@@ -91,7 +91,7 @@ cd /Users/sanbai/Downloads/claude-code-skill-tree-view
 ### 6. 测试项目视图装饰器
 
 1. 在项目视图中导航到 `.claude/skills` 目录
-2. 观察文件夹名称是否被装饰（显示层级结构的一部分）
+2. 观察文件夹是否显示蓝色图标标识（装饰器仅为 skills 目录添加视觉标识）
 
 ## 运行单元测试
 

@@ -48,14 +48,17 @@ class SkillTreeNode(
     /**
      * 获取图标
      */
-    fun getIcon(): javax.swing.Icon {
+    fun getIcon(project: com.intellij.openapi.project.Project): javax.swing.Icon {
         return if (isVirtual) {
             com.intellij.icons.AllIcons.Nodes.Folder
         } else {
             if (virtualFile?.isDirectory == true) {
                 com.intellij.icons.AllIcons.Nodes.Folder
             } else {
-                com.intellij.icons.AllIcons.FileTypes.Any_type
+                // 使用文件类型管理器获取正确的文件类型图标
+                val fileType = com.intellij.openapi.fileTypes.FileTypeManager.getInstance()
+                    .getFileTypeByFile(virtualFile!!)
+                fileType.getIcon()
             }
         }
     }
