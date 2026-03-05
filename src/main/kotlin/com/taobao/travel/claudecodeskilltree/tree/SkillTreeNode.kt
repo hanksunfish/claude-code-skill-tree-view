@@ -50,12 +50,24 @@ class SkillTreeNode(
      */
     fun getIcon(project: com.intellij.openapi.project.Project): javax.swing.Icon {
         return if (isVirtual) {
-            // 虚拟节点随机使用自定义图标
-            val iconIndex = (0..2).random()
-            com.intellij.openapi.util.IconLoader.getIcon(
-                "/icons/virtual-node-icon-$iconIndex.png",
-                this::class.java.classLoader
-            )
+            // 检查是否启用自定义图标
+            val settings = project.getService(com.taobao.travel.claudecodeskilltree.config.DotNotationTreeState::class.java)
+            if (settings.showVirtualNodeIcons) {
+                // 获取配置的图标文件列表
+                val iconFiles = settings.iconFiles.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                if (iconFiles.isNotEmpty()) {
+                    // 随机选择一个图标
+                    val iconFile = iconFiles.random()
+                    com.intellij.openapi.util.IconLoader.getIcon(
+                        "/icons/$iconFile",
+                        this::class.java.classLoader
+                    )
+                } else {
+                    com.intellij.icons.AllIcons.Nodes.Folder
+                }
+            } else {
+                com.intellij.icons.AllIcons.Nodes.Folder
+            }
         } else {
             if (virtualFile?.isDirectory == true) {
                 com.intellij.icons.AllIcons.Nodes.Folder

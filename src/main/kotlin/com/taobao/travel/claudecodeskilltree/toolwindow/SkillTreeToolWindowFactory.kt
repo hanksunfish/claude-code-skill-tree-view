@@ -119,8 +119,9 @@ class SkillTreeToolWindowFactory : ToolWindowFactory {
                         if (e.x >= iconX && e.x <= iconX + iconWidth &&
                             e.y >= rowBounds.y && e.y <= rowBounds.y + iconHeight) {
 
-                            // 单击图标：显示预览
-                            if (e.clickCount == 1 && node.isVirtual) {
+                            // 单击图标：显示预览（仅当启用自定义图标时）
+                            val iconSettings = project.getService(DotNotationTreeState::class.java)
+                            if (e.clickCount == 1 && node.isVirtual && iconSettings.showVirtualNodeIcons) {
                                 showIconPreview(node)
                                 return
                             }
@@ -281,10 +282,19 @@ class SkillTreeToolWindowFactory : ToolWindowFactory {
      */
     private fun showIconPreview(node: SkillTreeNode) {
         try {
-            // 加载图标 - 随机选择一个图标
-            val iconIndex = (0..2).random()
+            // 从设置中获取图标文件列表
+            val settings = com.taobao.travel.claudecodeskilltree.config.DotNotationTreeState.getInstance()
+            val iconFiles = settings.iconFiles.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+
+            if (iconFiles.isEmpty()) {
+                System.err.println("No icon files configured")
+                return
+            }
+
+            // 随机选择一个图标
+            val iconFile = iconFiles.random()
             val icon = com.intellij.openapi.util.IconLoader.getIcon(
-                "/icons/virtual-node-icon-$iconIndex.png",
+                "/icons/$iconFile",
                 this::class.java.classLoader
             )
 

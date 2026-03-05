@@ -41,6 +41,12 @@ class DotNotationTreeState : PersistentStateComponent<DotNotationTreeState> {
     var showVirtualNodeIcons: Boolean = true
 
     /**
+     * 图标文件列表（用逗号分隔）
+     * 这些文件应位于 src/main/resources/icons/ 目录
+     */
+    var iconFiles: String = "virtual-node-icon-0.png,virtual-node-icon-1.png,virtual-node-icon-2.png"
+
+    /**
      * 是否在项目视图中启用树形显示
      * true: 在 Project 视图中将点号命名文件夹显示为树形结构
      * false: 保持扁平显示（默认）
