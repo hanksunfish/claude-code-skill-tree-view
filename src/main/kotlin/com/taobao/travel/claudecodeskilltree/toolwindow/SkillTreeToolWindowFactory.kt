@@ -28,21 +28,44 @@ class SkillTreeToolWindowFactory : ToolWindowFactory {
         // 创建主面板
         val mainPanel = JBPanel<JBPanel<*>>(BorderLayout())
 
-        // 创建树组件
-        val treePanel = createSkillTree(project)
-        val tree = treePanel.first
+        // 检测是否在索引状态
+        val dumbService = com.intellij.openapi.project.DumbService.getInstance(project)
 
-        // 添加刷新按钮面板
-        val toolbarPanel = createToolbar(project, tree)
+        if (dumbService.isDumb) {
+            // 索引期间：显示索引状态面板
+            val indexingPanel = IndexingPanel()
+            mainPanel.add(indexingPanel, BorderLayout.CENTER)
 
-        // 组装界面
-        mainPanel.add(toolbarPanel, BorderLayout.NORTH)
-        mainPanel.add(treePanel.second, BorderLayout.CENTER)
+            // 添加简化工具栏（索引期间只有刷新按钮）
+            val toolbarPanel = createIndexingToolbar(project)
+            mainPanel.add(toolbarPanel, BorderLayout.NORTH)
 
-        // 添加到工具窗口
-        val contentManager = toolWindow.contentManager
-        val content = contentManager.factory.createContent(mainPanel, "", false)
-        contentManager.addContent(content)
+            // 添加到工具窗口
+            val contentManager = toolWindow.contentManager
+            val content = contentManager.factory.createContent(mainPanel, "", false)
+            contentManager.addContent(content)
+
+            // 监听索引完成事件，完成后刷新到正常视图
+            dumbService.runWhenSmart(Runnable {
+                refreshToNormalView(project, toolWindow)
+            })
+        } else {
+            // 正常状态：显示树视图
+            val treePanel = createSkillTree(project)
+            val tree = treePanel.first
+
+            // 添加完整工具栏
+            val toolbarPanel = createToolbar(project, tree)
+
+            // 组装界面
+            mainPanel.add(toolbarPanel, BorderLayout.NORTH)
+            mainPanel.add(treePanel.second, BorderLayout.CENTER)
+
+            // 添加到工具窗口
+            val contentManager = toolWindow.contentManager
+            val content = contentManager.factory.createContent(mainPanel, "", false)
+            contentManager.addContent(content)
+        }
     }
 
     /**
@@ -141,6 +164,30 @@ class SkillTreeToolWindowFactory : ToolWindowFactory {
     }
 
     /**
+     * 创建索引期间的简化工具栏
+     */
+    private fun createIndexingToolbar(project: Project): JPanel {
+        val panel = JBPanel<JBPanel<*>>()
+
+        // 只添加刷新按钮
+        val refreshButton = JButton("刷新")
+        refreshButton.addActionListener {
+            // 刷新整个工具窗口
+            com.intellij.openapi.wm.ToolWindowManager.getInstance(project)
+                .getToolWindow("Skills Tree")
+                ?.let { toolWindow ->
+                    // 移除所有内容并重新创建
+                    toolWindow.contentManager.removeAllContents(true)
+                    createToolWindowContent(project, toolWindow)
+                }
+        }
+
+        panel.add(refreshButton)
+
+        return panel
+    }
+
+    /**
      * 刷新树
      */
     private fun refreshTree(tree: Tree, project: Project) {
@@ -208,5 +255,16 @@ class SkillTreeToolWindowFactory : ToolWindowFactory {
                     .openFile(virtualFile, true, true)
             }
         }
+    }
+
+    /**
+     * 切换到正常树视图
+     */
+    private fun refreshToNormalView(project: Project, toolWindow: ToolWindow) {
+        // 移除所有内容
+        toolWindow.contentManager.removeAllContents(true)
+
+        // 重新创建正常视图
+        createToolWindowContent(project, toolWindow)
     }
 }
