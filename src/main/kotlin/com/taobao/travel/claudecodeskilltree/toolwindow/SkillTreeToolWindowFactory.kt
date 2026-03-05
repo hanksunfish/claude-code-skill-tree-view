@@ -19,7 +19,7 @@ import javax.swing.JPanel
 import javax.swing.tree.DefaultTreeCellRenderer
 
 /**
- * Skills Tree 工具窗口工���
+ * Skills Tree 工具窗口工厂
  * 创建并初始化显示 skills 树形结构的工具窗口
  */
 class SkillTreeToolWindowFactory : ToolWindowFactory {
@@ -101,15 +101,35 @@ class SkillTreeToolWindowFactory : ToolWindowFactory {
         tree.showsRootHandles = true  // 显示展开/折叠手柄
         tree.isRootVisible = false  // 隐藏根节点
 
-        // 添加双击导航监听器
+        // 添加鼠标点击监听器
         tree.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
-                if (e.clickCount == 2) {
-                    val path = tree.selectionPath
-                    if (path != null) {
-                        val node = path.lastPathComponent as? SkillTreeNode
-                        node?.let {
-                            navigateToFile(it, project)
+                // 检测是否为图标点击
+                val path = tree.getPathForLocation(e.x, e.y)
+                if (path != null) {
+                    val node = path.lastPathComponent as? SkillTreeNode
+                    if (node != null) {
+                        // 计算图标位置（在行的左侧）
+                        val row = tree.getRowForPath(path)
+                        val rowBounds = tree.getRowBounds(row)
+                        val iconX = rowBounds.x + tree.insets.left
+                        val iconWidth = 20  // 图标宽度估计值
+                        val iconHeight = 20 // 图标高度估计值
+
+                        // 检查点击是否在图标区域内
+                        if (e.x >= iconX && e.x <= iconX + iconWidth &&
+                            e.y >= rowBounds.y && e.y <= rowBounds.y + iconHeight) {
+
+                            // 单击图标：显示预览
+                            if (e.clickCount == 1 && node.isVirtual) {
+                                showIconPreview(node)
+                                return
+                            }
+                        }
+
+                        // 双击：导航到文件
+                        if (e.clickCount == 2) {
+                            navigateToFile(node, project)
                         }
                     }
                 }
@@ -254,6 +274,39 @@ class SkillTreeToolWindowFactory : ToolWindowFactory {
                 com.intellij.openapi.fileEditor.FileEditorManager.getInstance(project)
                     .openFile(virtualFile, true, true)
             }
+        }
+    }
+
+    /**
+     * 显示图标预览
+     */
+    private fun showIconPreview(node: SkillTreeNode) {
+        try {
+            // 加载图标
+            val icon = com.intellij.openapi.util.IconLoader.getIcon(
+                "/icons/virtual-node-icon.svg",
+                this::class.java.classLoader
+            )
+
+            // 创建一个 JLabel 来显示放大的图标
+            val label = JBLabel()
+            label.icon = icon
+            label.setBorder(javax.swing.border.EmptyBorder(20, 20, 20, 20))
+
+            // 创建弹出窗口
+            val builder = com.intellij.openapi.ui.popup.JBPopupFactory.getInstance()
+                .createComponentPopupBuilder(label, null)
+                .setTitle("Virtual Node Icon - ${node.name}")
+                .setMovable(true)
+                .setResizable(true)
+                .setRequestFocus(true)
+
+            // 显示在屏幕中央
+            builder.createPopup().showInFocusCenter()
+        } catch (e: Exception) {
+            // For now, just log the error - notification will be improved in Task 4
+            System.err.println("Failed to load icon preview: ${e.message}")
+            e.printStackTrace()
         }
     }
 
