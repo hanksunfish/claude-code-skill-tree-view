@@ -129,7 +129,7 @@ Virtual nodes (intermediate nodes in the tree structure) display a custom icon:
 
 To customize the icon, replace:
 ```
-src/main/resources/icons/virtual-node-icon.svg
+src/main/resources/icons/virtual-node-icon.png
 ```
 
 Recommended icon specifications:
