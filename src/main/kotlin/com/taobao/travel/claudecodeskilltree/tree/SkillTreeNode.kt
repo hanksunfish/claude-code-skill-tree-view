@@ -50,9 +50,10 @@ class SkillTreeNode(
      */
     fun getIcon(project: com.intellij.openapi.project.Project): javax.swing.Icon {
         return if (isVirtual) {
-            // 虚拟节点使用自定义图标
+            // 虚拟节点随机使用自定义图标
+            val iconIndex = (0..2).random()
             com.intellij.openapi.util.IconLoader.getIcon(
-                "/icons/virtual-node-icon.svg",
+                "/icons/virtual-node-icon-$iconIndex.png",
                 this::class.java.classLoader
             )
         } else {

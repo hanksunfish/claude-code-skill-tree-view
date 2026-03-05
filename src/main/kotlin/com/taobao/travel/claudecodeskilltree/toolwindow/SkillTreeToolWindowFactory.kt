@@ -16,7 +16,6 @@ import java.awt.event.MouseEvent
 import javax.swing.BoxLayout
 import javax.swing.JButton
 import javax.swing.JPanel
-import javax.swing.tree.DefaultTreeCellRenderer
 
 /**
  * Skills Tree 工具窗口工厂
@@ -282,9 +281,10 @@ class SkillTreeToolWindowFactory : ToolWindowFactory {
      */
     private fun showIconPreview(node: SkillTreeNode) {
         try {
-            // 加载图标
+            // 加载图标 - 随机选择一个图标
+            val iconIndex = (0..2).random()
             val icon = com.intellij.openapi.util.IconLoader.getIcon(
-                "/icons/virtual-node-icon.svg",
+                "/icons/virtual-node-icon-$iconIndex.png",
                 this::class.java.classLoader
             )
 
