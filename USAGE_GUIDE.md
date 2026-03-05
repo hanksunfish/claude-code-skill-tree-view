@@ -121,6 +121,22 @@
 文件夹名: web-design//accessibility
 ```
 
+### Virtual Node Icons
+
+Virtual nodes (intermediate nodes in the tree structure) display a custom icon:
+- 🖼️ **Click the icon** to view enlarged version
+- 📁 **Double-click** to navigate to the file/folder
+
+To customize the icon, replace:
+```
+src/main/resources/icons/virtual-node-icon.svg
+```
+
+Recommended icon specifications:
+- Format: SVG (scalable vector graphics)
+- Size: 16x16 pixels (base size, will scale appropriately)
+- Style: Simple, monochrome or limited color palette for best visibility
+
 ---
 
 ## 🔧 常用操作
