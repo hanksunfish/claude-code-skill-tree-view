@@ -73,6 +73,9 @@
                 instance="com.taobao.travel.claudecodeskilltree.config.DotNotationTreeConfigurable"
                 id="com.taobao.travel.claudecodeskilltree.config.DotNotationTreeConfigurable"
                 displayName="Claude Code Skill Tree View"/>
+
+        <!-- Notification group for error messages -->
+        <notificationGroup id="Claude Code Skill Tree View" displayType="BALLOON"/>
     </extensions>
 
     <!-- Actions - 已禁用右键菜单选项 -->
