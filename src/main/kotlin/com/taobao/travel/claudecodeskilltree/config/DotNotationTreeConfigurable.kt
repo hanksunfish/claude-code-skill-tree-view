@@ -1,12 +1,19 @@
 package com.taobao.travel.claudecodeskilltree.config
 
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.ui.Messages
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.table.JBTable
+import com.intellij.util.ImageLoader
 import java.awt.*
+import java.awt.image.BufferedImage
+import java.io.File
+import java.io.FileOutputStream
+import javax.imageio.ImageIO
 import javax.swing.*
 import javax.swing.border.EmptyBorder
 import javax.swing.border.LineBorder
@@ -23,7 +30,6 @@ class DotNotationTreeConfigurable : Configurable {
     private var iconTable: JBTable? = null
     private var tableModel: DefaultTableModel? = null
     private var settings: DotNotationTreeState? = null
-    private val iconDir = "icons/"
 
     // 列名
     private val columnNames = arrayOf("预览", "文件名")
@@ -71,13 +77,13 @@ class DotNotationTreeConfigurable : Configurable {
         iconTable?.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
 
         val scrollPane = JScrollPane(iconTable)
-        scrollPane.preferredSize = Dimension(300, 150)
+        scrollPane.preferredSize = Dimension(320, 180)
 
         // 按钮面板
         val buttonPanel = JPanel(FlowLayout(FlowLayout.LEFT, 5, 5))
 
-        val addButton = JButton("+ 添加")
-        addButton.addActionListener { addIconFile() }
+        val uploadButton = JButton("📁 上传图片")
+        uploadButton.addActionListener { uploadIconFile() }
 
         val removeButton = JButton("- 删除")
         removeButton.addActionListener { removeIconFile() }
@@ -88,7 +94,7 @@ class DotNotationTreeConfigurable : Configurable {
         val downButton = JButton("↓ 下移")
         downButton.addActionListener { moveIconDown() }
 
-        buttonPanel.add(addButton)
+        buttonPanel.add(uploadButton)
         buttonPanel.add(removeButton)
         buttonPanel.add(Box.createHorizontalStrut(20))
         buttonPanel.add(upButton)
@@ -108,8 +114,8 @@ class DotNotationTreeConfigurable : Configurable {
         val noteLabel = JLabel("""
             <html>
             <ul>
-                <li>图标文件必须放在 <code>src/main/resources/icons/</code> 目录</li>
-                <li>推荐图片尺寸: 16x16 像素 PNG 格式</li>
+                <li>点击"上传图片"按钮选择本地 PNG 图片</li>
+                <li>图片会自动缩放为 16x16 像素</li>
                 <li>虚拟节点会随机显示列表中的某个图标</li>
                 <li>点击树中虚拟节点的图标可预览大图</li>
             </ul>
@@ -132,31 +138,121 @@ class DotNotationTreeConfigurable : Configurable {
     }
 
     /**
-     * 添加图标文件
+     * 上传图标文件
      */
-    private fun addIconFile() {
-        val fileName = JOptionPane.showInputDialog(
-            null,
-            "请输入图标文件名（例如: my-icon.png）:",
-            "添加图标",
-            JOptionPane.QUESTION_MESSAGE
-        )
+    private fun uploadIconFile() {
+        // 创建文件选择器
+        val fileChooser = JFileChooser()
+        fileChooser.dialogTitle = "选择图标图片"
+        fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
+        fileChooser.isMultiSelectionEnabled = true
 
-        if (!fileName.isNullOrBlank()) {
-            // 检查是否已存在
-            for (i in 0 until tableModel!!.rowCount) {
-                if (tableModel!!.getValueAt(i, 1) == fileName) {
-                    JOptionPane.showMessageDialog(null, "该图标已存在！")
-                    return
+        // 设置文件过滤器 - 只显示图片文件
+        val imageFilter = javax.swing.filechooser.FileNameExtensionFilter(
+            "图片文件 (PNG, JPG, GIF, SVG)",
+            "png", "jpg", "jpeg", "gif", "svg"
+        )
+        fileChooser.fileFilter = imageFilter
+
+        // 显示选择对话框
+        val result = fileChooser.showOpenDialog(null)
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            val selectedFiles = fileChooser.selectedFiles
+
+            for (file in selectedFiles) {
+                if (file != null) {
+                    try {
+                        // 复制并缩放图片到图标目录
+                        val savedFile = saveIconFile(file)
+                        if (savedFile != null) {
+                            // 加载图标并添加到表格
+                            val icon = loadIcon(savedFile.name)
+                            tableModel?.addRow(arrayOf(icon, savedFile.name))
+                        }
+                    } catch (e: Exception) {
+                        Messages.showErrorDialog("上传图片失败: ${e.message}", "错误")
+                    }
                 }
             }
-
-            // 尝试加载图标
-            val icon = loadIcon(fileName.trim())
-
-            // 添加新行
-            tableModel!!.addRow(arrayOf(icon, fileName.trim()))
         }
+    }
+
+    /**
+     * 保存图标文件到资源目录
+     */
+    private fun saveIconFile(sourceFile: File): File? {
+        // 获取图标资源目录
+        val resourceDir = getIconsDirectory()
+
+        // 生成唯一的文件名
+        val originalName = sourceFile.nameWithoutExtension
+        val extension = if (sourceFile.extension.isNotEmpty()) sourceFile.extension else "png"
+        var targetFile = File(resourceDir, "$originalName.$extension")
+
+        // 如果文件已存在，添加数字后缀
+        var counter = 1
+        while (targetFile.exists()) {
+            targetFile = File(resourceDir, "$originalName-$counter.$extension")
+            counter++
+        }
+
+        // 读取并处理图片
+        try {
+            val image = ImageIO.read(sourceFile)
+
+            // 如果图片不是16x16，进行缩放
+            val scaledImage: BufferedImage
+            if (image.width != 16 || image.height != 16) {
+                scaledImage = BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB)
+                val graphics = scaledImage.createGraphics()
+                graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
+                graphics.drawImage(image, 0, 0, 16, 16, null)
+                graphics.dispose()
+            } else {
+                scaledImage = image
+            }
+
+            // 保存图片
+            ImageIO.write(scaledImage, extension, targetFile)
+
+            return targetFile
+        } catch (e: Exception) {
+            Messages.showErrorDialog("处理图片失败: ${e.message}", "错误")
+            return null
+        }
+    }
+
+    /**
+     * 获取图标资源目录
+     */
+    private fun getIconsDirectory(): File {
+        // 尝试获取资源目录
+        val classLoader = DotNotationTreeConfigurable::class.java.classLoader
+
+        // 尝试通过类路径找到资源目录
+        val resourceUrl = classLoader.getResource("icons/")
+        if (resourceUrl != null) {
+            // 从 URL 获取实际文件路径
+            val urlPath = resourceUrl.path
+            // 处理 URL 编码
+            val decodedPath = java.net.URLDecoder.decode(urlPath, "UTF-8")
+            // 处理文件协议
+            val filePath = if (decodedPath.startsWith("file:")) {
+                decodedPath.removePrefix("file:")
+            } else {
+                decodedPath
+            }
+            return File(filePath)
+        }
+
+        // 如果找不到资源目录，使用默认路径（相对于项目根目录）
+        val projectRoot = File("src/main/resources")
+        val iconsDir = File(projectRoot, "icons")
+        if (!iconsDir.exists()) {
+            iconsDir.mkdirs()
+        }
+        return iconsDir
     }
 
     /**
@@ -165,9 +261,32 @@ class DotNotationTreeConfigurable : Configurable {
     private fun removeIconFile() {
         val selectedRow = iconTable?.selectedRow ?: -1
         if (selectedRow >= 0) {
-            tableModel!!.removeRow(selectedRow)
+            val fileName = tableModel!!.getValueAt(selectedRow, 1).toString()
+
+            // 询问是否删除文件
+            val result = Messages.showYesNoDialog(
+                "是否删除图标文件 \"$fileName\"？",
+                "确认删除",
+                Messages.getQuestionIcon()
+            )
+
+            if (result == Messages.YES) {
+                // 删除文件
+                try {
+                    val iconsDir = getIconsDirectory()
+                    val iconFile = File(iconsDir, fileName)
+                    if (iconFile.exists()) {
+                        iconFile.delete()
+                    }
+                } catch (e: Exception) {
+                    // 忽略删除文件失败
+                }
+
+                // 从表格中移除
+                tableModel!!.removeRow(selectedRow)
+            }
         } else {
-            JOptionPane.showMessageDialog(null, "请先选择要删除的图标！")
+            Messages.showMessageDialog("请先选择要删除的图标！", "提示", Messages.getInformationIcon())
         }
     }
 
@@ -247,9 +366,9 @@ class DotNotationTreeConfigurable : Configurable {
      */
     private fun loadIcon(fileName: String): Icon? {
         return try {
-            val url = DotNotationTreeConfigurable::class.java.classLoader.getResource(iconDir + fileName)
+            val url = DotNotationTreeConfigurable::class.java.classLoader.getResource("icons/$fileName")
             if (url != null) {
-                val image = javax.imageio.ImageIO.read(url)
+                val image = ImageIO.read(url)
                 ImageIcon(image.getScaledInstance(20, 20, Image.SCALE_DEFAULT))
             } else null
         } catch (e: Exception) {
