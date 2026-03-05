@@ -1,5 +1,6 @@
 package com.taobao.travel.claudecodeskilltree.toolwindow
 
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
@@ -228,7 +229,7 @@ class SkillTreeToolWindowFactory : ToolWindowFactory {
     }
 
     /**
-     * 展开全部节点
+     * 展开全部��点
      */
     private fun expandAll(tree: Tree) {
         var row = 0
@@ -324,10 +325,35 @@ class SkillTreeToolWindowFactory : ToolWindowFactory {
      * 切换到正常树视图
      */
     private fun refreshToNormalView(project: Project, toolWindow: ToolWindow) {
-        // 移除所有内容
-        toolWindow.contentManager.removeAllContents(true)
+        // 确保在EDT线程上执行
+        val app = ApplicationManager.getApplication()
+        if (app.isDispatchThread) {
+            doRefreshToNormalView(project, toolWindow)
+        } else {
+            app.invokeLater {
+                doRefreshToNormalView(project, toolWindow)
+            }
+        }
+    }
 
-        // 重新创建正常视图
-        createToolWindowContent(project, toolWindow)
+    private fun doRefreshToNormalView(project: Project, toolWindow: ToolWindow) {
+        try {
+            // 检查工具窗口和contentManager是否有效
+            val contentManager = toolWindow.contentManager ?: return
+            if (contentManager.contents.isEmpty()) {
+                // 如果没有内容，直接创建
+                createToolWindowContent(project, toolWindow)
+                return
+            }
+
+            // 移除所有内容
+            contentManager.removeAllContents(true)
+
+            // 重新创建正常视图
+            createToolWindowContent(project, toolWindow)
+        } catch (e: Exception) {
+            System.err.println("Error refreshing to normal view: ${e.message}")
+            e.printStackTrace()
+        }
     }
 }
