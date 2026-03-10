@@ -51,9 +51,11 @@ class DotNotationTreeConfigurable : Configurable {
         enableIconsCheckBox = JCheckBox("启用自定义虚拟节点图标")
         enableIconsCheckBox?.toolTipText = "启用后，虚拟节点将显示自定义图标而非默认文件夹图标"
         enableIconsCheckBox?.font = Font(enableIconsCheckBox?.font?.name, Font.BOLD, 13)
+        enableIconsCheckBox?.alignmentX = Component.LEFT_ALIGNMENT
 
         // ========== 第二部分：图标管理 ==========
         val tablePanel = JPanel(BorderLayout(10, 10))
+        tablePanel.alignmentX = Component.LEFT_ALIGNMENT
         tablePanel.border = TitledBorder(
             LineBorder(JBColor.border()),
             "图标列表（16x16 像素 PNG 图片）",
@@ -78,9 +80,11 @@ class DotNotationTreeConfigurable : Configurable {
 
         val scrollPane = JScrollPane(iconTable)
         scrollPane.preferredSize = Dimension(320, 180)
+        scrollPane.alignmentX = Component.LEFT_ALIGNMENT
 
         // 按钮面板
         val buttonPanel = JPanel(FlowLayout(FlowLayout.LEFT, 5, 5))
+        buttonPanel.alignmentX = Component.LEFT_ALIGNMENT
 
         val uploadButton = JButton("📁 上传图片")
         uploadButton.addActionListener { uploadIconFile() }
@@ -103,6 +107,7 @@ class DotNotationTreeConfigurable : Configurable {
         // ========== 第三部分：说明 ==========
         val notePanel = JPanel()
         notePanel.layout = BoxLayout(notePanel, BoxLayout.Y_AXIS)
+        notePanel.alignmentX = Component.LEFT_ALIGNMENT
         notePanel.border = TitledBorder(
             LineBorder(JBColor.border()),
             "使用说明",
@@ -113,15 +118,18 @@ class DotNotationTreeConfigurable : Configurable {
 
         val noteLabel = JLabel("""
             <html>
-            <ul>
+            <div style='text-align: left;'>
+            <ul style='padding-left: 20px;'>
                 <li>点击"上传图片"按钮选择本地 PNG 图片</li>
                 <li>图片会自动缩放为 16x16 像素</li>
                 <li>虚拟节点会随机显示列表中的某个图标</li>
                 <li>点击树中虚拟节点的图标可预览大图</li>
             </ul>
+            </div>
             </html>
         """.trimIndent())
         noteLabel.font = Font(null, Font.PLAIN, 12)
+        noteLabel.alignmentX = Component.LEFT_ALIGNMENT
 
         notePanel.add(noteLabel)
 
