@@ -8,12 +8,14 @@
 
 ## 项目简介
 
-Claude Code 使用点号命名（如 `superpowers.test-driven-development`）来���织 skills 文件夹。本插件将这些扁平的点号命名文件夹转换为直观的层级树形结构，便于浏览和管理。
+Claude Code 使用点号命名（如 `superpowers.test-driven-development`）来组织 skills 文件夹。本插件将这些扁平的点号命名文件夹转换为直观的层级树形结构，便于浏览和管理。
 
 ## 界面截图
 
+正经模式
 ![配置界面](https://maas-log-prod.cn-wlcb.ufileos.com/anthropic/d6659d59-7c70-4fed-89ec-4b5f5d86646b/2cd06da9c22f8e10ccff48e897ebdc4e.png?UCloudPublicKey=TOKEN_e15ba47a-d098-4fbd-9afc-a0dcf0e4e621&Expires=1773144688&Signature=Ty5nSCgNx7PVKcX26m9cHzsaUEw=)
 
+娱乐模式
 ![树形结构展示](https://maas-log-prod.cn-wlcb.ufileos.com/anthropic/d6659d59-7c70-4fed-89ec-4b5f5d86646b/c22337a72c2a98ff011e54c273a422e6.png?UCloudPublicKey=TOKEN_e15ba47a-d098-4fbd-9afc-a0dcf0e4e621&Expires=1773144688&Signature=e/pS4Kbv7KLoTcB3GvUh18jXAWY=)
 
 ## 核心功能
